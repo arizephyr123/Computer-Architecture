@@ -4,7 +4,10 @@ PRINT_NUM       = 0b00000011
 # command that will put something into registers
 SAVE            = 0b00000100
 PRINT_REGISTER  = 0b00000101
-ADD             = 0b00001000
+ADD             = 0b00000110
+
+memory = [0] * 256
+
 
 
 memory = [
@@ -42,6 +45,8 @@ pc = 0
 running = True
 
 while running:
+    command = memory[pc]
+
     if command == PRINT_TIM:
         print('tim!')
 
