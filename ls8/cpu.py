@@ -74,14 +74,14 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        print('in ALU')
+        # print('in ALU')
         if op == "ADD":
-            print('in alu ADD')
+            # print('in alu ADD')
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
-            print('in alu MUL')
+            # print('in alu MUL')
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
@@ -114,12 +114,12 @@ class CPU:
 
     def ram_read(self, MAR):
         """Read RAM from memory address register(MAR)."""
-        print(self.reg[MAR])
+        print(self.reg[MAR]) # <-- don't comment out
         self.reg[MAR]
 
     def ram_write(self, MAR, MDR):
         """Write RAM from memory data register to MAR"""
-        print('in ran_write ==>\n MAR', MAR, '\nMDR', MDR)
+        # print('in ran_write ==>\n MAR', MAR, '\nMDR', MDR)
         self.reg[MAR] = MDR
 
     def hlt(self):
@@ -131,12 +131,12 @@ class CPU:
         """ load "immediate" - set this register to this value """
         reg_num = self.ram[self.pc+1]
         value = self.ram[self.pc+2]
-        print('LDI ==> reg#: ', reg_num, 'val: ', value)
-        print('\npc before ->', self.pc)
+        # print('LDI ==> reg#: ', reg_num, 'val: ', value)
+        # print('\npc before ->', self.pc)
 
         self.ram_write(reg_num, value)
         self.pc +=3
-        print('pc after->', self.pc, '\n')
+        # print('pc after->', self.pc, '\n')
         
 
     def prn(self):
@@ -154,34 +154,34 @@ class CPU:
 
     def mul(self):
         """   """
-        print('in mul')
-        print('pc before ->', self.pc)
+        # print('in mul')
+        # print('pc before ->', self.pc)
         reg_a = self.ram[self.pc+1]
         reg_b = self.ram[self.pc+2]
         # print(reg_a, reg_b)
-        self.alu('MUL', reg_a, reg_b)
+        # self.alu('MUL', reg_a, reg_b)
         self.pc +=3
-        print('pc after ->', self.pc)
+        # print('pc after ->', self.pc)
     
     def run(self):
         """Run the CPU."""
         self.running = True
         # self.trace()
-        print('in run\n', self.ram)
+        # print('in run\n', self.ram)
 
         while self.running == True:
-            print('regs =>', self.reg)
+            # print('regs =>', self.reg)
             # ir => instruction register
             # in ram at program counter index
             ir = self.ram[self.pc]
-            print(f'pc -> {self.pc}')
-            print('ir', ir)
+            # print(f'pc -> {self.pc}')
+            # print('ir', ir)
             
 
 
             if ir in self.ir_methods:
                 # grab/ call ir method from ir_methods dictionay
-                print(f'ir_methods[{ir}] -> {self.ir_methods[ir]}')
+                # print(f'ir_methods[{ir}] -> {self.ir_methods[ir]}')
                 self.ir_methods[ir]()
 
             else:
