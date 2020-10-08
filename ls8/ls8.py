@@ -3,7 +3,7 @@
 """Main."""
 
 import sys
-from cpu import *
+from cpu import CPU
 
 if len(sys.argv) != 2:
     print('Missing second argument.')
@@ -18,3 +18,4 @@ else:
 
     except FileNotFoundError:
         print(f'Error from {sys.argv[0]}: {sys.argv[1]} not found')
+
