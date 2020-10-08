@@ -81,7 +81,7 @@ class CPU:
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
-            # print('in alu MUL')
+            # print('in alu MUL', reg_a, " * ", reg_b)
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
@@ -159,7 +159,7 @@ class CPU:
         reg_a = self.ram[self.pc+1]
         reg_b = self.ram[self.pc+2]
         # print(reg_a, reg_b)
-        # self.alu('MUL', reg_a, reg_b)
+        self.alu('MUL', reg_a, reg_b)
         self.pc +=3
         # print('pc after ->', self.pc)
     
