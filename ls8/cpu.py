@@ -91,14 +91,11 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-        # print('in ALU')
         if op == "ADD":
-            # print('in alu ADD')
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
-            # print('in alu MUL', reg_a, " * ", reg_b)
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
@@ -106,20 +103,11 @@ class CPU:
             self.reg[reg_a] %= self.reg[reg_b]
         elif op == "CMP":
             if self.reg[reg_a] == self.reg[reg_b]:
-                # * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
-                print(f'self.reg[{reg_a}]: {self.reg[reg_a]} == self.reg[{reg_b}]: {self.reg[reg_b]}')
-                self.flag[7] = 1 # E flag
-                print(self.flag)
+                self.flag = 0b00000001
             elif self.reg[reg_a] < self.reg[reg_b]:
-                # * If registerA is less than registerB, set the Less-than `L` flag to 1, otherwise set it to 0.
-                print(f'self.reg[{reg_a}]: {self.reg[reg_a]} < self.reg[{reg_b}]: {self.reg[reg_b]}')
-                self.flag[5] = 1 # L flag
-                print(self.flag)
-            elif self.reg[reg_a] > self.reg[reg_b]:
-                # * If registerA is greater than registerB, set the Greater-than `G` flag to 1, otherwise set it to 0.
-                print(f'self.reg[{reg_a}]: {self.reg[reg_a]} > self.reg[{reg_b}]: {self.reg[reg_b]}')
-                self.flag[6] = 1 # G flag
-                print(self.flag)
+                self.flag = 0b00000100
+            if self.reg[reg_a] > self.reg[reg_b]:
+                self.flag = 0b00000010
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -151,7 +139,6 @@ class CPU:
 
     def ram_write(self, MAR, MDR):
         """Write RAM from memory data register to MAR"""
-        # print('in ran_write ==>\n MAR', MAR, '\nMDR', MDR)
         self.reg[MAR] = MDR
 
     def hlt(self):
@@ -163,12 +150,9 @@ class CPU:
         """ load "immediate" - set this register to this value """
         reg_num = self.ram[self.pc+1]
         value = self.ram[self.pc+2]
-        # print('LDI ==> reg#: ', reg_num, 'val: ', value)
-        # print('\npc before ->', self.pc)
 
         self.ram_write(reg_num, value)
         self.pc +=3
-        # print('pc after->', self.pc, '\n')
         
 
     def prn(self):
@@ -186,14 +170,10 @@ class CPU:
 
     def mul(self):
         """   """
-        # print('in mul')
-        # print('pc before ->', self.pc)
         reg_a = self.ram[self.pc+1]
         reg_b = self.ram[self.pc+2]
-        # print(reg_a, reg_b)
         self.alu('MUL', reg_a, reg_b)
         self.pc +=3
-        # print('pc after ->', self.pc)
 
     def comp(self):
         reg_a = self.ram[self.pc+1]
@@ -216,10 +196,6 @@ class CPU:
         45 0r
         ```
         """
-        # reg_a = self.ram[self.pc+1]
-        # reg_b = self.ram[self.pc+2]
-        # self.alu('CMP', reg_a, reg_b)
-        # self.pc +=3
         pass
 
     def pop(self):
@@ -236,10 +212,6 @@ class CPU:
         46 0r
         ```
         """
-        # reg_a = self.ram[self.pc+1]
-        # reg_b = self.ram[self.pc+2]
-        # self.alu('CMP', reg_a, reg_b)
-        # self.pc +=3
 
 
     def call(self):
@@ -257,10 +229,6 @@ class CPU:
         50 0r
         ```
         """
-        # reg_a = self.ram[self.pc+1]
-        # reg_b = self.ram[self.pc+2]
-        # self.alu('CMP', reg_a, reg_b)
-        # self.pc +=3
 
 
     def ret(self):
@@ -278,10 +246,6 @@ class CPU:
         11
         ```
         """
-        # reg_a = self.ram[self.pc+1]
-        # reg_b = self.ram[self.pc+2]
-        # self.alu('CMP', reg_a, reg_b)
-        # self.pc +=3
 
 
     def jmp(self):
@@ -308,7 +272,8 @@ class CPU:
         """
         if self.flag == 1:
             self.jmp()
-        self.pc +=2
+        else:
+            self.pc +=2
         
 
 
@@ -317,24 +282,21 @@ class CPU:
         If `E` flag is clear (false, 0), jump to the address stored in the given
         register.
         """
-        if self.flag == 0:
+        if self.flag != 1:
             self.jmp()
-        self.pc +=2
-
-
+        else:
+            self.pc +=2
     
     def run(self):
         """Run the CPU."""
         self.running = True
-        # self.trace()
-        # print('in run\n', self.ram)
 
         while self.running == True:
-            print('regs =>', self.reg)
+            # print('regs =>', self.reg)
             # ir => instruction register
             # in ram at program counter index
             ir = self.ram[self.pc]
-            print(f'pc -> {self.pc}')
+            # print(f'run pc -> {self.pc}')
             # print('ir', ir)
             
 
