@@ -1,10 +1,18 @@
 """CPU functionality."""
 
 import sys
-
+# branch/dispatch table
 HLT = 0b00000001  # 1-> halt CPU, exit emulator
 LDI = 0b10000010  # 130-> load "immediate" - set this register to this value
 PRN = 0b01000111  # 71-> prints numeric value stored in register
+PUSH = 0b01000101
+POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
+CMP = 0b10100111
+JMP = 0b01010100
+JEQ = 0b01010101
+JNE = 0b01010110
 # ALU methods
 ADD = 0b10100000    # 
 MUL = 0b10100010    # 162
@@ -16,17 +24,26 @@ class CPU:
         """Construct a new CPU."""
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.flag = [0] * 8
         self.pc = 0 # program counter
         self.sp = 7 # stack pointer (last index of registers)
-        self.reg[self.sp] = 0xF4 # stack pointer set here why??- start toward end of RAM and move down(decrement index)??
+        self.reg[self.sp] = 0xF4 # F3  Start of Stack, decrements as pushed, grows down
         self.running = False
         self.ir_methods = {
             HLT: self.hlt,
             LDI: self.ldi,
             PRN: self.prn,
+            PUSH: self.push,
+            POP: self.pop,
+            CALL: self.call,
+            RET: self.ret,
+            JMP: self.jmp,
+            JEQ: self.jeq,
+            JNE: self.jne,
             ADD: self.add,
             MUL: self.mul,
-        }
+            CMP: self.comp,
+            }
 
     # def load(self):
     #     """Load a program into memory."""
@@ -87,7 +104,22 @@ class CPU:
             self.reg[reg_a] /= self.reg[reg_b]
         elif op == "MOD":
             self.reg[reg_a] %= self.reg[reg_b]
-        
+        elif op == "CMP":
+            if self.reg[reg_a] == self.reg[reg_b]:
+                # * If they are equal, set the Equal `E` flag to 1, otherwise set it to 0.
+                print(f'self.reg[{reg_a}]: {self.reg[reg_a]} == self.reg[{reg_b}]: {self.reg[reg_b]}')
+                self.flag[7] = 1 # E flag
+                print(self.flag)
+            elif self.reg[reg_a] < self.reg[reg_b]:
+                # * If registerA is less than registerB, set the Less-than `L` flag to 1, otherwise set it to 0.
+                print(f'self.reg[{reg_a}]: {self.reg[reg_a]} < self.reg[{reg_b}]: {self.reg[reg_b]}')
+                self.flag[5] = 1 # L flag
+                print(self.flag)
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                # * If registerA is greater than registerB, set the Greater-than `G` flag to 1, otherwise set it to 0.
+                print(f'self.reg[{reg_a}]: {self.reg[reg_a]} > self.reg[{reg_b}]: {self.reg[reg_b]}')
+                self.flag[6] = 1 # G flag
+                print(self.flag)
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -162,6 +194,134 @@ class CPU:
         self.alu('MUL', reg_a, reg_b)
         self.pc +=3
         # print('pc after ->', self.pc)
+
+    def comp(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('CMP', reg_a, reg_b)
+        self.pc +=3
+
+
+    def push(self):
+        """
+        Push the value in the given register on the stack.
+
+        1. Decrement the `SP`.
+        2. Copy the value in the given register to the address pointed to by
+        `SP`.
+
+        Machine code:
+        ```
+        01000101 00000rrr
+        45 0r
+        ```
+        """
+        # reg_a = self.ram[self.pc+1]
+        # reg_b = self.ram[self.pc+2]
+        # self.alu('CMP', reg_a, reg_b)
+        # self.pc +=3
+        pass
+
+    def pop(self):
+        pass
+        """
+        Pop the value at the top of the stack into the given register.
+
+        1. Copy the value from the address pointed to by `SP` to the given register.
+        2. Increment `SP`.
+
+        Machine code:
+        ```
+        01000110 00000rrr
+        46 0r
+        ```
+        """
+        # reg_a = self.ram[self.pc+1]
+        # reg_b = self.ram[self.pc+2]
+        # self.alu('CMP', reg_a, reg_b)
+        # self.pc +=3
+
+
+    def call(self):
+        pass
+        """
+        Calls a subroutine (function) at the address stored in the register.
+
+        1. The address of the ***instruction*** _directly after_ `CALL` is
+        pushed onto the stack. This allows us to return to where we left off when the subroutine finishes executing.
+        2. The PC is set to the address stored in the given register. We jump to that location in RAM and execute the first instruction in the subroutine. The PC can move forward or backwards from its current location.
+
+        Machine code:
+        ```
+        01010000 00000rrr
+        50 0r
+        ```
+        """
+        # reg_a = self.ram[self.pc+1]
+        # reg_b = self.ram[self.pc+2]
+        # self.alu('CMP', reg_a, reg_b)
+        # self.pc +=3
+
+
+    def ret(self):
+        pass
+        """
+        `RET`
+
+        Return from subroutine.
+
+        Pop the value from the top of the stack and store it in the `PC`.
+
+        Machine Code:
+        ```
+        00010001
+        11
+        ```
+        """
+        # reg_a = self.ram[self.pc+1]
+        # reg_b = self.ram[self.pc+2]
+        # self.alu('CMP', reg_a, reg_b)
+        # self.pc +=3
+
+
+    def jmp(self):
+        """
+        Jump to the address stored in the given register.
+        """
+        # get reg num holding address
+        reg_num = self.ram[self.pc+1]
+        # get address from that reg
+        jump_to_address = self.reg[reg_num]
+        # update pc to that address
+        self.pc = jump_to_address
+
+
+    def jeq(self):
+        """
+        If `equal` flag is set (true), jump to the address stored in the given register.
+
+        Machine code:
+        ```
+        01010101 00000rrr
+        55 0r
+        ```
+        """
+        if self.flag == 1:
+            self.jmp()
+        self.pc +=2
+        
+
+
+    def jne(self):
+        """
+        If `E` flag is clear (false, 0), jump to the address stored in the given
+        register.
+        """
+        if self.flag == 0:
+            self.jmp()
+        self.pc +=2
+
+
     
     def run(self):
         """Run the CPU."""
@@ -170,11 +330,11 @@ class CPU:
         # print('in run\n', self.ram)
 
         while self.running == True:
-            # print('regs =>', self.reg)
+            print('regs =>', self.reg)
             # ir => instruction register
             # in ram at program counter index
             ir = self.ram[self.pc]
-            # print(f'pc -> {self.pc}')
+            print(f'pc -> {self.pc}')
             # print('ir', ir)
             
 
