@@ -9,13 +9,21 @@ PUSH = 0b01000101
 POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
-CMP = 0b10100111
 JMP = 0b01010100
 JEQ = 0b01010101
 JNE = 0b01010110
 # ALU methods
-ADD = 0b10100000    # 
+ADD = 0b10100000    
+SUB = 0b10100001 
 MUL = 0b10100010    # 162
+DIV = 0b10100011
+MOD = 0b10100100
+CMP = 0b10100111  
+AND = 0b01101001
+OR = 0b10101010
+XOR = 0b10101011
+NOT = 0b01101001
+SHL = 0b10101100
 
 class CPU:
     """Main CPU class."""
@@ -29,6 +37,7 @@ class CPU:
         self.sp = 7 # stack pointer (last index of registers)
         self.reg[self.sp] = 0xF4 # F3  Start of Stack, decrements as pushed, grows down
         self.running = False
+        
         self.ir_methods = {
             HLT: self.hlt,
             LDI: self.ldi,
@@ -40,33 +49,18 @@ class CPU:
             JMP: self.jmp,
             JEQ: self.jeq,
             JNE: self.jne,
-            ADD: self.add,
+            ADD: self.add,    
+            SUB: self.sub, 
             MUL: self.mul,
-            CMP: self.comp,
+            DIV: self.div,
+            MOD: self.mod,
+            CMP: self.comp,  
+            AND: self.bw_and,
+            OR: self.bw_or,
+            XOR: self.bw_xor,
+            NOT: self.bw_not,
+            SHL: self.shl,
             }
-
-    # def load(self):
-    #     """Load a program into memory."""
-
-    #     address = 0
-
-    #     # For now, we've just hardcoded a program:
-
-    #     program = [
-    #         # From print8.ls8
-    #         0b10000010, # LDI R0,8
-    #         0b00000000,
-    #         0b00001000,
-    #         0b01000111, # PRN R0
-    #         0b00000000,
-    #         0b00000001, # HLT
-    #     ]
-
-    #     for instruction in program:
-    #         self.ram[address] = instruction
-    #         address += 1
-
-    #     # print('ram', self.ram)
 
         
     def load(self, file_path):
@@ -88,7 +82,6 @@ class CPU:
                 address +=1
     
 
-
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
         if op == "ADD":
@@ -108,6 +101,16 @@ class CPU:
                 self.flag = 0b00000100
             if self.reg[reg_a] > self.reg[reg_b]:
                 self.flag = 0b00000010
+        elif op == "AND":
+            self.reg[reg_a] & self.reg[reg_b]
+        elif op == "OR":
+            self.reg[reg_a] | self.reg[reg_b]
+        elif op == "XOR":
+            self.reg[reg_a] ^ self.reg[reg_b]
+        elif op == "NOT":
+            self.reg[reg_a] = ~self.reg[reg_b]
+        elif op == "SHL":
+            self.reg[reg_a] << self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -181,6 +184,57 @@ class CPU:
         self.alu('CMP', reg_a, reg_b)
         self.pc +=3
 
+    def bw_and(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('AND', reg_a, reg_b)
+        self.pc +=3
+
+    def bw_not(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('NOT', reg_a, reg_b)
+        self.pc +=3
+
+    def bw_or(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('OR', reg_a, reg_b)
+        self.pc +=3
+
+    def bw_xor(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('XOR', reg_a, reg_b)
+        self.pc +=3
+
+
+    def div(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('DIV', reg_a, reg_b)
+        self.pc +=3
+
+    def mod(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('MOD', reg_a, reg_b)
+        self.pc +=3
+
+    
+    def sub(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('SUB', reg_a, reg_b)
+        self.pc +=3
+
+    
+    def shl(self):
+        reg_a = self.ram[self.pc+1]
+        reg_b = self.ram[self.pc+2]
+        self.alu('SHL', reg_a, reg_b)
+        self.pc +=3
+
 
     def push(self):
         """
@@ -199,7 +253,6 @@ class CPU:
         pass
 
     def pop(self):
-        pass
         """
         Pop the value at the top of the stack into the given register.
 
@@ -212,10 +265,10 @@ class CPU:
         46 0r
         ```
         """
+        pass
 
 
     def call(self):
-        pass
         """
         Calls a subroutine (function) at the address stored in the register.
 
@@ -229,10 +282,10 @@ class CPU:
         50 0r
         ```
         """
+        pass
 
 
     def ret(self):
-        pass
         """
         `RET`
 
@@ -246,6 +299,7 @@ class CPU:
         11
         ```
         """
+        pass
 
 
     def jmp(self):
@@ -263,12 +317,6 @@ class CPU:
     def jeq(self):
         """
         If `equal` flag is set (true), jump to the address stored in the given register.
-
-        Machine code:
-        ```
-        01010101 00000rrr
-        55 0r
-        ```
         """
         if self.flag == 1:
             self.jmp()
@@ -279,8 +327,7 @@ class CPU:
 
     def jne(self):
         """
-        If `E` flag is clear (false, 0), jump to the address stored in the given
-        register.
+        If `E` flag is clear (false, 0), jump to the address stored in the given register.
         """
         if self.flag != 1:
             self.jmp()
@@ -299,7 +346,6 @@ class CPU:
             # print(f'run pc -> {self.pc}')
             # print('ir', ir)
             
-
 
             if ir in self.ir_methods:
                 # grab/ call ir method from ir_methods dictionay
